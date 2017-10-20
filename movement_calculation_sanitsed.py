@@ -197,11 +197,11 @@ def addSGLinks(G):
 
 def addWHLinks(G):    
     # Caribbean <-> Varitang
-    caribbeanWG = '6_3318'
-    varitangWH = '9_7637'
-    attrDict = {'type':'WH','weight':200}
-    G.add_edge(caribbeanWG,varitangWH,'6|9',attrDict)
-    G.add_edge(varitangWH,caribbeanWG,'9|6',attrDict)
+    # caribbeanWG = '6_3318'
+    # varitangWH = '9_7637'
+    # attrDict = {'type':'WH','weight':200}
+    # G.add_edge(caribbeanWG,varitangWH,'6|9',attrDict)
+    # G.add_edge(varitangWH,caribbeanWG,'9|6',attrDict)
 
     # yank -> halo
     yankWH = '146_3102'
@@ -210,14 +210,14 @@ def addWHLinks(G):
     G.add_edge(yankWH,agripetaWH,'146|198',attrDict)
     G.add_edge(agripetaWH,yankWH,'198|146',attrDict)       
     
-    # london <-> crossley
-    # unstable and dangerous due to AM
-    # more weight
-    londonWH = '41_565'
-    crossleyWH = '99_2231'
-    attrDict = {'type':'WH','weight':5000}
-    G.add_edge(londonWH,crossleyWH,'41|99',attrDict)
-    G.add_edge(crossleyWH,londonWH,'99|41',attrDict)     
+    ## london <-> crossley
+    ## unstable and dangerous due to AM
+    ## more weight
+    #londonWH = '41_565'
+    #crossleyWH = '99_2231'
+    #attrDict = {'type':'WH','weight':5000}
+    #G.add_edge(londonWH,crossleyWH,'41|99',attrDict)
+    #G.add_edge(crossleyWH,londonWH,'99|41',attrDict)     
     
     
     return G
