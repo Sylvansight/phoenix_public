@@ -309,8 +309,8 @@ if __name__ == '__main__':
     ########################################################################
     startSysNum = '146'
     startSysOQ = '676'   # OQ or planetID
-    endSysNum = '9'
-    endSysOQ = '3203'    # OQ or planetID
+    endSysNum = '1'
+    endSysOQ = '145'    # OQ or planetID
     ISR = 4
     jumpTU = 50
     orbitTime = 50
