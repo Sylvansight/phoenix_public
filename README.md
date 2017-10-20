@@ -1,2 +1,2 @@
 # phoenix_public
-snippets / tools for KJC Pheonix
+snippets / tools for KJC Phoenix
