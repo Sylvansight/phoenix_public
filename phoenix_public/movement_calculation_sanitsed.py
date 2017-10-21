@@ -68,7 +68,7 @@ def extractSysFromFileDir(aFile,G,ISR,jumpTU,orbitTime):
                         sysLinks[system.attrib['id']] = []
                         sysLinks[system.attrib['id']].append(
                             [cb.attrib['sys_id'],cb.attrib['dist']])
-                else:
+                elif cb.tag == 'cbody':
                     oqNode = system.attrib['id'] + '_' + quadToA(
                         cb.attrib['quad']) + cb.attrib['ring']
                     
@@ -175,7 +175,25 @@ def moreWeightForPinchPoints(G):
 
 def adjustJumpSystemWithMuliplier(G):
     # list of systems with modifiers to jumping in or out...
-    pass
+    sysJumpMod = {'124': {'jumpIn': 1.0
+                         ,'jumpOut': 1.0
+                            }
+                  }
+
+    for each in G.edges_iter(data=True):
+        # jump out modifications
+        if ((each[0].split('_')[0] in sysJumpMod.keys()) 
+            and each[2]['type'] == 'Jump'):
+            
+            each[2]['weight'] *= sysJumpMod[each[0].split('_')[0]]['jumpOut']
+        
+        # jump in modifications
+        if ((each[1].split('_')[0] in sysJumpMod.keys()) 
+            and each[2]['type'] == 'Jump'):
+            
+            each[2]['weight'] *= sysJumpMod[each[1].split('_')[0]]['jumpIn']       
+    return G
+              
 
 def addSGLinks(G):
     # common SG
@@ -230,12 +248,14 @@ def allSystems(ISR,jumpTU,orbitTime,useSG,useWH):
     G = addLinksBetweenSystems(G,sysEdges,jumpTU)
     G = adjustJumpWeightsIntoHazards(G)
     G = moreWeightForPinchPoints(G)
+    G = adjustJumpSystemWithMuliplier(G)
     if str(useSG) == '1':
         G = addSGLinks(G)
     if str(useWH) == '1':
         G = addWHLinks(G)
     #for each in G.nodes(data=True):
     #   print(each)
+    
     return G
 
 def calculateTUfromEdges(G,edgesinpath,ISR,jumpTU,orbitTime,officerBonus,
@@ -302,18 +322,16 @@ def getPath(startSysNum,startSysOQ,endSysNum,endSysOQ,ISR,jumpTU,
     except nx.exception.NetworkXNoPath:
         return -1
 
-def genericTUs(aShipType):
-    return{'caravel':{'ISR':'4','jumpTU':'100',}}
 if __name__ == '__main__':
     from time import time
     ########################################################################
-    startSysNum = '146'
-    startSysOQ = '676'   # OQ or planetID
-    endSysNum = '1'
-    endSysOQ = '145'    # OQ or planetID
+    startSysNum = '9'
+    startSysOQ = 'G15'   # OQ or planetID
+    endSysNum = '124'
+    endSysOQ = 'G15'    # OQ or planetID
     ISR = 4
     jumpTU = 50
-    orbitTime = 50
+    orbitTime = 20
     officerBonus = 0 #0,5,10,15,20
     efficiency = 100
     useSG = 0
