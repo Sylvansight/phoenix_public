@@ -68,7 +68,7 @@ def extractSysFromFileDir(aFile,G,ISR,jumpTU,orbitTime):
                         sysLinks[system.attrib['id']] = []
                         sysLinks[system.attrib['id']].append(
                             [cb.attrib['sys_id'],cb.attrib['dist']])
-                else:
+                elif cb.tag == 'cbody':
                     oqNode = system.attrib['id'] + '_' + quadToA(
                         cb.attrib['quad']) + cb.attrib['ring']
                     
@@ -94,7 +94,7 @@ def flattenSystems(aDir):
     # ie each system connected to all single jump destinations with weight of 1 
     # Venice connects to Yank etc
     # load results into set in numerical order to save deduping later
-    # In future, look to replace this with a recursive function... just because
+    # looks a bit ugly - probably a more elegant way of doing this.
     flatList = set()
     #### direct links '''
     for k,v in aDir.items():
@@ -133,20 +133,33 @@ def flattenSystems(aDir):
 def addLinksBetweenSystems(G,aList,jumpTU):
     # aList is full of tuples of systems ('123','456')
     # go through them, for each pair generate edges for all OQ in rings 10-15
+    
+    #############################
+    # extra weight for in / out in certain systems
+    originalJumpTU = jumpTU
+    jumpMods = getJumpSystemMultipliers()
+    
+    
     for each in aList:
         #print(each)
         s1 = each[0]
         s2 = each[1]
         for quad in ('A','B','G','D'):
             for ring in range(10,16):
+                jumpTU = originalJumpTU
+                attrDict = {'type':'Jump','weight':jumpTU}
                 ring = str(ring)
                 startNode = s1 +'_' + quad + ring
                 endNode = s2 + '_' + quad + ring
-                
-                attrDict = {'type':'Jump','weight':jumpTU}
                 edgeKey = s1 + '|'+ s2
+                if s1 in jumpMods.keys():
+                    jumpTU *= jumpMods[s1]['jumpOut']
+                    attrDict = {'type':'Jump','weight':jumpTU,'TU_override':jumpTU}
                 G.add_edge(startNode, endNode,edgeKey, attrDict)
                 edgeKey = s2 + '|'+ s1
+                if s2 in jumpMods.keys():
+                    jumpTU *= jumpMods[s2]['jumpIn']
+                    attrDict = {'type':'Jump','weight':jumpTU,'TU_override':jumpTU}
                 G.add_edge(endNode, startNode,edgeKey, attrDict)
     return G
 
@@ -164,7 +177,11 @@ def moreWeightForPinchPoints(G):
     # for example, to avoid routing via through ring 10 of venice
     # 
     
-    badOQ = ['124_A10','124_B10','124_G10','124_D10']
+    # example usage:
+    #    badOQ = ['124_A10','124_B10','124_G10','124_D10']
+     
+    badOQ = ['124_G9']
+     
     for each in G.nodes_iter():
         if each in badOQ:
             pinchpointEdges = G.in_edges(each,data=True)
@@ -172,10 +189,17 @@ def moreWeightForPinchPoints(G):
                 d['weight'] = 250
     return G
         
+def getJumpSystemMultipliers():
+    # add systems with non-standard jump multipliers to this dict
+    sysJumpMod = {'124': {'jumpIn': 1.0
+                         ,'jumpOut': 1.0
+                            }
+                }
 
-def adjustJumpSystemWithMuliplier(G):
-    # list of systems with modifiers to jumping in or out...
-    pass
+    return sysJumpMod
+    
+
+#               
 
 def addSGLinks(G):
     # common SG
@@ -236,6 +260,7 @@ def allSystems(ISR,jumpTU,orbitTime,useSG,useWH):
         G = addWHLinks(G)
     #for each in G.nodes(data=True):
     #   print(each)
+    
     return G
 
 def calculateTUfromEdges(G,edgesinpath,ISR,jumpTU,orbitTime,officerBonus,
@@ -252,21 +277,24 @@ def calculateTUfromEdges(G,edgesinpath,ISR,jumpTU,orbitTime,officerBonus,
         whTU = 100
     
     for u,v in edgesinpath:
-        moveType = G[u][v].items()[0][1]['type']
-        if moveType == 'Jump':
-            TU += jump
-        if moveType == 'OQ-quad':
-            TU += int(float(ISR)*eff)
-        if moveType == 'OQ-ring':
-            r = u.split('_')[1][1:]
-            TU += int(float(r)*float(ISR)*eff)
-            #print(str(int(float(r)*float(ISR)*eff)))
-        if moveType == 'Orbit':
-            TU += int(float(orbitTime)*eff)
-        if moveType == 'WH':
-            TU += int(float(whTU)*eff)
-        if moveType == 'SG':
-            TU += int(float(100)*eff)        
+        if 'TU_override' in G[u][v].items()[0][1].keys():
+            TU += G[u][v].items()[0][1]['TU_override']
+        else:
+            moveType = G[u][v].items()[0][1]['type']
+            if moveType == 'Jump':
+                TU += jump
+            if moveType == 'OQ-quad':
+                TU += int(float(ISR)*eff)
+            if moveType == 'OQ-ring':
+                r = u.split('_')[1][1:]
+                TU += int(float(r)*float(ISR)*eff)
+                #print(str(int(float(r)*float(ISR)*eff)))
+            if moveType == 'Orbit':
+                TU += int(float(orbitTime)*eff)
+            if moveType == 'WH':
+                TU += int(float(whTU)*eff)
+            if moveType == 'SG':
+                TU += int(float(100)*eff)        
     #print('TU: {}'.format(TU))
     return TU
 
@@ -302,18 +330,16 @@ def getPath(startSysNum,startSysOQ,endSysNum,endSysOQ,ISR,jumpTU,
     except nx.exception.NetworkXNoPath:
         return -1
 
-def genericTUs(aShipType):
-    return{'caravel':{'ISR':'4','jumpTU':'100',}}
 if __name__ == '__main__':
     from time import time
     ########################################################################
     startSysNum = '146'
-    startSysOQ = '676'   # OQ or planetID
-    endSysNum = '1'
-    endSysOQ = '145'    # OQ or planetID
+    startSysOQ = 'G15'   # OQ or planetID
+    endSysNum = '124'
+    endSysOQ = 'G15'    # OQ or planetID
     ISR = 4
     jumpTU = 50
-    orbitTime = 50
+    orbitTime = 20
     officerBonus = 0 #0,5,10,15,20
     efficiency = 100
     useSG = 0
