@@ -334,6 +334,7 @@ def getPath(startSysNum,startSysOQ,endSysNum,endSysOQ,ISR,jumpTU,
 if __name__ == '__main__':
     from time import time
     ########################################################################
+    startSysNum = '121'
     startSysOQ = 'G15'   # OQ or planetID
     endSysNum = '124'
     endSysOQ = 'G15'    # OQ or planetID
