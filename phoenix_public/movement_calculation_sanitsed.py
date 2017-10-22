@@ -254,7 +254,7 @@ def allSystems(ISR,jumpTU,orbitTime,useSG,useWH):
     G = addLinksBetweenSystems(G,sysEdges,jumpTU)
     G = adjustJumpWeightsIntoHazards(G)
     G = moreWeightForPinchPoints(G)
-    G = adjustJumpSystemWithMuliplier(G)
+   
     if str(useSG) == '1':
         G = addSGLinks(G)
     if str(useWH) == '1':
