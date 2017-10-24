@@ -197,7 +197,7 @@ def moreWeightForPinchPoints(G):
         
 def getJumpSystemMultipliers():
     # add systems with non-standard jump multipliers to this dict
-    sysJumpMod = {'124': {'jumpIn': 2.0
+    sysJumpMod = {'124': {'jumpIn': 1.0
                          , 'jumpOut': 1.0
                             }
                 }
