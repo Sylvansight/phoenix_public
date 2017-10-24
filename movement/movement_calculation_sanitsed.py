@@ -345,7 +345,7 @@ if __name__ == '__main__':
     ########################################################################
     startSysNum = '121'
     startSysOQ = 'B15'  # OQ or planetID
-    endSysNum = '152'
+    endSysNum = '124'
     endSysOQ = 'B15'  # OQ or planetID
     ISR = 4
     jumpTU = 50
