@@ -1,5 +1,5 @@
 from __future__ import print_function
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 import networkx as nx
 
 def quadToA(aNum):
