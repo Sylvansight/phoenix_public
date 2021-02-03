@@ -1,18 +1,15 @@
 # converts phoenix xml order_data file into a collection of python order functions
 # point order_data_file at the order_data.xml file
-# output_file is the new file to create (give it a .py extension) 
-
-
+# output_file is the new file to create (give it a .py extension)
 
 import xml.etree.cElementTree as ET
-
-
 
 
 def clean_attrib(name_str):
     name_str = name_str.replace(' ', '_').replace('/', '_').replace('%', '')
     name_str = name_str.replace('(', '').replace(')', '').replace("'","").replace('from','from_').replace('.','')
     return name_str
+
 
 def convert_xml(order):
     order_dct = {}
@@ -34,9 +31,9 @@ def convert_xml(order):
 
     return order_dct
 
+
 def write_order(f, order_dict):
     # first line is going to be def name (param, param):
-    param_count = len(order_dict['params'])
     p = ''
     for each in order_dict['params']:
         p += each['name'] + ', '
@@ -53,21 +50,12 @@ def write_order(f, order_dict):
         return_list = '[id, {p}]'.format(p=p)
     return_str = '  return {}'.format(return_list)
 
-    # print(def_str)
-    # print(desc_str)
-    # print(id_str)
-    # print(typeflag_str)
-    # print(tu_str)
-    # print(return_str)
     full_string = def_str + '\n'
     full_string += desc_str + '\n\n'
     full_string += id_str + '\n'
     full_string += typeflag_str + '\n'
     full_string += tu_str + '\n\n'
     full_string += return_str + '\n\n\n'
-
-    print(full_string)
-
     f.write(full_string)
 
 
@@ -81,8 +69,6 @@ def main(read_file, write_file):
 
     for t in root[1]:
         order_dict = convert_xml(t)
-        #for k, v in order_dict.items():
-        #    print(k, v)
         write_order(wf, order_dict)
 
 
